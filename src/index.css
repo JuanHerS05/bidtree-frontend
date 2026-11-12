@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body { @apply bg-paper text-slate-800 font-sans antialiased; }
+  :focus-visible { @apply outline-none ring-2 ring-mint ring-offset-2 ring-offset-transparent; }
+}
+
+@layer components {
+  /* Precios, relojes y contadores: Space Grotesk + dígitos tabulares (sin saltos al cambiar). */
+  .num { font-family: 'Space Grotesk', 'Outfit', Inter, sans-serif; font-variant-numeric: tabular-nums; }
+  .glass { @apply bg-white/15 backdrop-blur-xl border border-white/25 shadow-2xl; }
+  .thin-scroll { scrollbar-width: thin; scrollbar-color: rgba(148,163,184,.5) transparent; }
+}
