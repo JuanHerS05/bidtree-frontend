@@ -4,10 +4,8 @@ export interface User { id: string; name: string; email: string; role: Role }
 
 /** DTO de registro (ms-usuarios → UserDTO). Ajusta los nombres de campo al DTO real. */
 export interface UserDTO {
-  nombre: string;
-  documento: string;
+  name: string;
   email: string;
-  telefono: string;
   password: string;
   rol: Role;
 }

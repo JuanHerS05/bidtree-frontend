@@ -19,8 +19,8 @@ const ep = (service: ServiceKey, method: HttpMethod, path: string): Endpoint => 
 
 export const ENDPOINTS = {
   auth: {
-    login: ep('usuarios', 'POST', '/api/v1/auth/login'),
-    register: ep('usuarios', 'POST', '/api/v1/users'), // recibe UserDTO
+    login: ep('usuarios', 'POST', '/users/login'),
+    register: ep('usuarios', 'POST', '/users/register'),
     forgotPassword: ep('usuarios', 'POST', '/api/v1/auth/forgot-password'),
   },
   auctions: {
@@ -43,13 +43,14 @@ export const ENDPOINTS = {
   },
   orders: {
     detail: ep('pagosAlertas', 'GET', '/api/v1/orders/{order_id}'),
-    pay: ep('pagosAlertas', 'POST', '/api/v1/orders/{order_id}/pay'),
+    pay: ep('pagosAlertas', 'POST', '/payments/register'),
+    listByUser: ep('pagosAlertas', 'GET', '/payments/user/{user_id}'),
     acceptReassignment: ep('pagosAlertas', 'POST', '/api/v1/orders/{order_id}/accept-reassignment'),
   },
   alerts: {
-    setPriceLimit: ep('pagosAlertas', 'POST', '/api/v1/alerts/price-limit'), // Configurar_Precio_Limite
-    notifications: ep('pagosAlertas', 'GET', '/api/v1/notifications'),
-    markRead: ep('pagosAlertas', 'PATCH', '/api/v1/notifications/{notification_id}/read'),
+    setPriceLimit: ep('pagosAlertas', 'POST', '/alerts/create'), // Configurar_Precio_Limite
+    notifications: ep('pagosAlertas', 'GET', '/alerts/user/{user_id}'),
+    markRead: ep('pagosAlertas', 'PUT', '/alerts/mark-read/{alert_id}'),
   },
   /** Canales WebSocket. */
   ws: {

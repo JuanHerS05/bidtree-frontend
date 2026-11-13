@@ -9,20 +9,17 @@ import type { Role, UserDTO } from '@/lib/types';
 import { toast } from '@/store/toast.store';
 import { AuthShell } from './Login';
 
-const STEPS = ['Datos personales', 'Contacto', 'Seguridad'];
-type Form = UserDTO & { confirm: string };
+// Reducimos a 2 pasos
+const STEPS = ['Perfil', 'Seguridad'];
+type Form = Omit<UserDTO, 'documento' | 'telefono'> & { confirm: string };
 
 function validate(step: number, f: Form): Partial<Record<keyof Form, string>> {
   const e: Partial<Record<keyof Form, string>> = {};
   if (step === 0) {
-    if (f.nombre.trim().length < 3) e.nombre = 'Ingresa tu nombre completo';
-    if (!/^\d{6,12}$/.test(f.documento)) e.documento = 'Documento de 6 a 12 dígitos';
+    if (f.name.trim().length < 3) e.name = 'Ingresa tu nombre completo';
+    if (!/^\S+@\S+\.\S+$/.test(f.email)) e.email = 'Correo no válido';
   }
   if (step === 1) {
-    if (!/^\S+@\S+\.\S+$/.test(f.email)) e.email = 'Correo no válido';
-    if (!/^\+?\d{7,15}$/.test(f.telefono.replace(/\s/g, ''))) e.telefono = 'Teléfono no válido';
-  }
-  if (step === 2) {
     if (f.password.length < 8 || !/[A-Za-z]/.test(f.password) || !/\d/.test(f.password)) e.password = 'Mínimo 8 caracteres con letras y números';
     if (f.confirm !== f.password) e.confirm = 'Las contraseñas no coinciden';
   }
@@ -32,12 +29,18 @@ function validate(step: number, f: Form): Partial<Record<keyof Form, string>> {
 export default function Register() {
   const nav = useNavigate();
   const [step, setStep] = useState(0);
-  const [f, setF] = useState<Form>({ nombre: '', documento: '', email: '', telefono: '', password: '', confirm: '', rol: 'BUYER' });
+  
+  // Estado inicial sin documento ni teléfono
+  const [f, setF] = useState<Form>({ name: '', email: '', password: '', confirm: '', rol: 'BUYER' });
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement>) => setF((p) => ({ ...p, [k]: e.target.value }));
 
   const m = useMutation({
-    mutationFn: () => { const { confirm: _c, ...dto } = f; return authApi.register({ ...dto, nombre: dto.nombre.trim(), email: dto.email.trim() }); },
+    mutationFn: () => { 
+      const { confirm: _c, ...dto } = f; 
+      // Enviamos el payload limpio
+      return authApi.register({ ...dto, name: dto.name.trim(), email: dto.email.trim() }); 
+    },
     onSuccess: () => { toast.success('¡Cuenta creada!', 'Ya puedes iniciar sesión.'); nav('/login'); },
     onError: (e: Error) => toast.error('No se pudo registrar', e.message),
   });
@@ -65,15 +68,14 @@ export default function Register() {
           ))}
         </ol>
 
+        {/* PASO 0: Nombre y Email */}
         {step === 0 && (<>
-          <Input glass label="Nombre completo" value={f.nombre} onChange={set('nombre')} error={errors.nombre} autoFocus />
-          <Input glass label="Documento de identidad" inputMode="numeric" value={f.documento} onChange={set('documento')} error={errors.documento} />
+          <Input glass label="Nombre completo" value={f.name} onChange={set('name')} error={errors.name} autoFocus />
+          <Input glass label="Correo electrónico" type="email" value={f.email} onChange={set('email')} error={errors.email} />
         </>)}
+        
+        {/* PASO 1: Contraseña y Rol */}
         {step === 1 && (<>
-          <Input glass label="Correo electrónico" type="email" value={f.email} onChange={set('email')} error={errors.email} autoFocus />
-          <Input glass label="Teléfono" type="tel" value={f.telefono} onChange={set('telefono')} error={errors.telefono} />
-        </>)}
-        {step === 2 && (<>
           <Input glass label="Contraseña" type="password" autoComplete="new-password" value={f.password} onChange={set('password')} error={errors.password} autoFocus />
           <Input glass label="Confirmar contraseña" type="password" autoComplete="new-password" value={f.confirm} onChange={set('confirm')} error={errors.confirm} />
           <fieldset>
