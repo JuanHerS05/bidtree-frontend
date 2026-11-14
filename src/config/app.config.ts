@@ -3,8 +3,8 @@ export const APP = {
   locale: 'es-CO',
   currency: 'COP',
   /** Anti-Sniping: ventana (s) en que una puja destella en rojo y extiende el tiempo. */
-  antiSnipingWindowSeconds: 15,
-  antiSnipingExtensionSeconds: 15,
+  antiSnipingWindowSeconds: 30,
+  antiSnipingExtensionSeconds: 60,
   /** Una subasta con menos de N minutos se marca "Próxima a cerrar" (ámbar). */
   endingSoonMinutes: 5,
   /** Botonera de oferta rápida (+ $5.000, + $10.000, + $50.000). */

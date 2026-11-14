@@ -29,6 +29,7 @@ export const ENDPOINTS = {
     mine: ep('subastas', 'GET', '/api/v1/auctions/mine'),
     create: ep('subastas', 'POST', '/api/v1/auctions'),
     cancel: ep('subastas', 'DELETE', '/api/v1/auctions/{auction_id}/cancel'),
+    finalize: ep('pujas', 'PUT', '/api/v1/auctions'),
     uploadImage: ep('subastas', 'POST', '/api/v1/auctions/image'), // multipart → { image_url }
     categories: ep('subastas', 'GET', '/api/v1/auctions/categories'),
   },
@@ -54,7 +55,7 @@ export const ENDPOINTS = {
   },
   /** Canales WebSocket. */
   ws: {
-    auction: ep('pujas', 'GET', '/ws/auction/{subasta_id}'),
+    auction: ep('pujas', 'GET', '/ws/auction/?subasta_id={subasta_id}'),
     notifications: ep('pagosAlertas', 'GET', '/ws/notifications'),
   },
 } as const;

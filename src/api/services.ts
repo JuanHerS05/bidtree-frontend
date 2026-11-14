@@ -5,6 +5,7 @@ import type {
   RewardHistoryItem, RewardSummary, UserDTO,
 } from '@/lib/types';
 import { call } from './http';
+import { useAuthStore } from '@/store/auth.store';
 
 export const authApi = {
   login: (email: string, password: string) =>
@@ -24,11 +25,26 @@ export const auctionsApi = {
     const fd = new FormData(); fd.append('file', file);
     return call<{ image_url: string }>(ENDPOINTS.auctions.uploadImage, { body: fd });
   },
+  finalize: (auctionId: string) =>
+    call<{ status: string; mensaje: string }>(ENDPOINTS.auctions.finalize, {
+      body: { subasta_id: auctionId },
+    }),
 };
 
 export const bidsApi = {
   history: (id: string) => call<Bid[]>(ENDPOINTS.bids.history, { params: { auction_id: id } }),
-  place: (auctionId: string, amount: number) => call<Bid>(ENDPOINTS.bids.place, { body: { auctionId, amount } }),
+  place: (auctionId: string, amount: number) => {
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) throw new Error('Debes iniciar sesión para realizar una puja.');
+
+    return call<{ status: string; mensaje: string }>(ENDPOINTS.bids.place, {
+      body: {
+        subasta_id: auctionId,
+        usuario_id: userId,
+        monto: amount,
+      },
+    });
+  },
 };
 
 export const rewardsApi = {

@@ -43,6 +43,15 @@ export default function SellerDashboard() {
     onError: (e: Error) => toast.error('No se pudo cancelar', e.message),
   });
 
+  const finalize = useMutation({
+    mutationFn: (id: string) => auctionsApi.finalize(id),
+    onSuccess: () => {
+      toast.success('Subasta finalizada', 'Ganador calculado y enviado a pagos.');
+      qc.invalidateQueries({ queryKey: ['auctions'] });
+    },
+    onError: (e: Error) => toast.error('No se pudo finalizar', e.message),
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -147,29 +156,115 @@ function CreateModal({ open, onClose }: { open: boolean; onClose: () => void }) 
     setErrors(er);
     if (!Object.keys(er).length) create.mutate();
   };
-
-  return (
-    <Modal open={open} onClose={() => { reset(); onClose(); }} title="Crear subasta" wide>
+  
+ return (
+    <Modal
+      open={open}
+      onClose={() => {
+        reset();
+        onClose();
+      }}
+      title="Crear subasta"
+      wide
+    >
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2" noValidate>
         <div className="sm:col-span-2">
           <p className="mb-1 text-sm font-medium text-slate-700">Imagen del producto</p>
-          <div onClick={() => fileRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); pick(e.dataTransfer.files[0]); }}
-            className={clsx('flex h-40 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed bg-slate-50 hover:border-mint', errors.image ? 'border-danger' : 'border-slate-300')} role="button" tabIndex={0}
-            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && fileRef.current?.click()}>
-            {preview ? <img src={preview} alt="Vista previa" className="h-full w-full object-contain" /> : <div className="flex flex-col items-center text-sm text-slate-500"><ImagePlus className="mb-1 h-7 w-7" />Arrastra o haz clic para subir</div>}
+          <div
+            onClick={() => fileRef.current?.click()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              pick(e.dataTransfer.files[0]);
+            }}
+            className={clsx(
+              'flex h-40 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed bg-slate-50 hover:border-mint',
+              errors.image ? 'border-danger' : 'border-slate-300',
+            )}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && fileRef.current?.click()}
+          >
+            {preview ? (
+              <img src={preview} alt="Vista previa" className="h-full w-full object-contain" />
+            ) : (
+              <div className="flex flex-col items-center text-sm text-slate-500">
+                <ImagePlus className="mb-1 h-7 w-7" />
+                Arrastra o haz clic para subir
+              </div>
+            )}
           </div>
-          <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => pick(e.target.files?.[0])}
+          />
           {errors.image && <p className="mt-1 text-xs text-danger">{errors.image}</p>}
         </div>
-        <div className="sm:col-span-2"><Input label="Título" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} error={errors.title} /></div>
         <div className="sm:col-span-2">
-          <label htmlFor="desc" className="mb-1 block text-sm font-medium text-slate-700">Descripción</label>
-          <textarea id="desc" rows={3} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-mint/60" />
+          <Input
+            label="Título"
+            value={f.title}
+            onChange={(e) => setF({ ...f, title: e.target.value })}
+            error={errors.title}
+          />
         </div>
-        <Input label="Precio base (COP)" type="number" min={1} value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} error={errors.price} />
-        <Select label="Categoría" value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })}>{categories.map((c) => <option key={c}>{c}</option>)}</Select>
-        <div className="sm:col-span-2"><Input label="Fecha y hora de expiración" type="datetime-local" min={toLocalInput(new Date(Date.now() + 120_000))} value={f.endsAt} onChange={(e) => setF({ ...f, endsAt: e.target.value })} error={errors.endsAt} /></div>
-        <div className="flex justify-end gap-2 sm:col-span-2"><Button type="button" variant="ghost" onClick={() => { reset(); onClose(); }}>Cancelar</Button><Button type="submit" variant="accent" loading={create.isPending}>Publicar subasta</Button></div>
+        <div className="sm:col-span-2">
+          <label htmlFor="desc" className="mb-1 block text-sm font-medium text-slate-700">
+            Descripción
+          </label>
+          <textarea
+            id="desc"
+            rows={3}
+            value={f.description}
+            onChange={(e) => setF({ ...f, description: e.target.value })}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-mint/60"
+          />
+        </div>
+        <Input
+          label="Precio base (COP)"
+          type="number"
+          min={1}
+          value={f.price}
+          onChange={(e) => setF({ ...f, price: e.target.value })}
+          error={errors.price}
+        />
+        <Select
+          label="Categoría"
+          value={f.category}
+          onChange={(e) => setF({ ...f, category: e.target.value })}
+        >
+          {categories.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </Select>
+        <div className="sm:col-span-2">
+          <Input
+            label="Fecha y hora de expiración"
+            type="datetime-local"
+            min={toLocalInput(new Date(Date.now() + 120_000))}
+            value={f.endsAt}
+            onChange={(e) => setF({ ...f, endsAt: e.target.value })}
+            error={errors.endsAt}
+          />
+        </div>
+        <div className="flex justify-end gap-2 sm:col-span-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              reset();
+              onClose();
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" variant="accent" loading={create.isPending}>
+            Publicar subasta
+          </Button>
+        </div>
       </form>
     </Modal>
   );

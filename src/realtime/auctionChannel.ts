@@ -12,7 +12,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { db } from '@/api/mock/db';
 import { mockBus, placeBid } from '@/api/mock/engine';
 import { ReconnectingSocket } from './ReconnectingSocket';
-import type { Connection } from '@/store/room.store';
+import { useRoomStore, type Connection } from '@/store/room.store';
 
 export type RoomMsg =
   | { kind: 'snapshot'; currentBid: number; bidCount: number; endsAt: string; status: AuctionStatus; bids: Bid[]; viewers?: number }
@@ -37,6 +37,32 @@ export const normalizeBid = (r: any): Bid => ({
 });
 
 function parse(raw: any): RoomMsg | null {
+  // Eventos emitidos directamente por el Hub WebSocket de ms-pujas (Go)
+  if (raw?.type === 'NUEVA_PUJA' && raw.data) {
+    const d = raw.data;
+    const me = useAuthStore.getState().user;
+    const leaderId = String(d.leader_id ?? '');
+    return {
+      kind: 'bid',
+      bid: {
+        id: `${leaderId}-${d.current_price}`,
+        auctionId: String(d.id),
+        userId: leaderId,
+        userName: me && me.id === leaderId ? me.name : leaderId,
+        amount: Number(d.current_price),
+        at: new Date().toISOString(),
+      },
+      endsAt: String(d.ends_at),
+      currentBid: Number(d.current_price),
+      bidCount: useRoomStore.getState().bidCount + 1,
+      extended: d.status === 'AuctionExtended',
+    };
+  }
+
+  if (raw?.type === 'SUBASTA_CANCELADA') {
+    return { kind: 'ended', winnerId: null, winnerName: null, finalPrice: 0, orderId: null };
+  }
+
   const key = wsEventKeyByName(String(raw?.type ?? ''));
   switch (key) {
     case 'snapshot':

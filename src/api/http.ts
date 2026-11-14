@@ -50,7 +50,10 @@ async function realRequest<T>(ep: Endpoint, opts: CallOptions): Promise<T> {
   const text = await res.text();
   const data = text ? safeJson(text) : undefined;
   if (!res.ok) {
-    const msg = (data as any)?.message ?? (data as any)?.detail ?? (data as any)?.error ?? `Error ${res.status}`;
+    const msg =
+      typeof data === 'string' && data.trim()
+        ? data.trim()
+        : (data as any)?.message ?? (data as any)?.detail ?? (data as any)?.error ?? `Error ${res.status}`;
     throw new ApiError(typeof msg === 'string' ? msg : JSON.stringify(msg), res.status, data);
   }
   return data as T;
