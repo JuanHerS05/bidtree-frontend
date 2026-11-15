@@ -23,24 +23,24 @@ export const ENDPOINTS = {
     register: ep('usuarios', 'POST', '/users/register'),
     forgotPassword: ep('usuarios', 'POST', '/api/v1/auth/forgot-password'),
   },
-  auctions: {
-    list: ep('subastas', 'GET', '/api/v1/auctions'), // ?q&category&min_price&max_price&ends_within_hours
-    detail: ep('subastas', 'GET', '/api/v1/auctions/{auction_id}'),
-    mine: ep('subastas', 'GET', '/api/v1/auctions/mine'),
-    create: ep('subastas', 'POST', '/api/v1/auctions'),
-    cancel: ep('subastas', 'DELETE', '/api/v1/auctions/{auction_id}/cancel'),
-    uploadImage: ep('subastas', 'POST', '/api/v1/auctions/image'), // multipart → { image_url }
-    categories: ep('subastas', 'GET', '/api/v1/auctions/categories'),
-  },
+ auctions: {
+  list: ep('subastas', 'GET', '/api/v1/auctions/catalog'),
+  detail: ep('subastas', 'GET', '/api/v1/auctions/{auction_id}'),       // no existe en tu MS, se resuelve en services.ts
+  mine: ep('subastas', 'GET', '/api/v1/auctions/seller/{seller_id}'),
+  create: ep('subastas', 'POST', '/api/v1/auctions/'),                  // con "/" final: FastAPI redirige si falta
+  cancel: ep('subastas', 'PUT', '/api/v1/auctions/{auction_id}/cancel'),
+  uploadImage: ep('subastas', 'POST', '/api/v1/auctions/image'),        // no existe, se resuelve en services.ts
+  categories: ep('subastas', 'GET', '/api/v1/auctions/categories'),     // no existe, se resuelve en services.ts
+},
   bids: {
     place: ep('pujas', 'POST', '/api/v1/bids'), // respaldo REST si el WebSocket no está disponible
     history: ep('pujas', 'GET', '/api/v1/auctions/{auction_id}/bids'),
   },
-  rewards: {
-    me: ep('subastas', 'GET', '/api/v1/rewards/me'),
-    history: ep('subastas', 'GET', '/api/v1/rewards/history'),
-    redeem: ep('subastas', 'POST', '/api/v1/rewards/redeem'),
-  },
+ rewards: {
+  me: ep('subastas', 'GET', '/api/v1/rewards/progress/{user_id}'),
+  history: ep('subastas', 'GET', '/api/v1/rewards/history'),            // no existe, se resuelve en services.ts
+  redeem: ep('subastas', 'POST', '/api/v1/rewards/redeem'),
+},
   orders: {
     detail: ep('pagosAlertas', 'GET', '/api/v1/orders/{order_id}'),
     pay: ep('pagosAlertas', 'POST', '/payments/register'),
